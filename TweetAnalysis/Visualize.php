@@ -1,15 +1,43 @@
 <?php
+    $topStates = array();
+    $handle = fopen("StateWiseClustering.csv", "r");
+
+    if ($handle) {
+        $row = 0;
+        while (($line = fgets($handle)) !== false) {
+            $row++;
+            if ($row == 1) {
+                continue;
+            }
+            
+            $line = str_replace("\n", "", $line);
+            $parts = explode(", ", $line);
+            
+            $topStates[$parts[0]] = abs($parts[1]-$parts[2]);
+            if (count($topStates) > 5) {
+                $lowestKey = array_keys($topStates, min($topStates))[0];
+                unset($topStates[$lowestKey]);
+            }
+        }
+
+        fclose($handle);
+    }
+
     $dataPoints = array();
     $handle = fopen("Clustered.csv", "r");
-    if ($handle) {
-        $truncatedLine = "";
 
+    if ($handle) {
         while (($line = fgets($handle)) !== false) {
             $parts = explode(", ", $line);
+            if (!array_key_exists($parts[0], $topStates)) {
+                continue;
+            }
+            
             $gunsArr = array();
             if (array_key_exists($parts[1], $dataPoints)) {
                 $gunsArr = $dataPoints[$parts[1]];
             }
+
             array_push($gunsArr, array("label" => $parts[0], "y" => str_replace("\n", "", $parts[2])));
             $dataPoints[$parts[1]] = $gunsArr;
         }
@@ -26,7 +54,7 @@
 
             var chart = new CanvasJS.Chart("chartContainer", {
                 animationEnabled: true,
-                theme: "dark2",
+                theme: "light1",
                 title: {
                     text: "Tweets For/Against Guns Clustered By States"
                 },
@@ -68,7 +96,7 @@
 </head>
 
 <body>
-    <div id="chartContainer" style="margin: 0 auto; height: 100%; width: 100%;"></div>
+    <div id="chartContainer" style="margin: 0 auto; height: 60%; width: 80%;"></div>
     <script src="canvasjs.min.js"></script>
 </body>
 
