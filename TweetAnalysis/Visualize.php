@@ -24,26 +24,37 @@
     }
 
     $dataPoints = array();
-    $handle = fopen("Clustered.csv", "r");
+    $handle = fopen("StateWiseClustering.csv", "r");
 
     if ($handle) {
+        $row = 0;
         while (($line = fgets($handle)) !== false) {
+            $row++;
+            if ($row == 1) {
+                continue;
+            }
+            
             $parts = explode(", ", $line);
             if (!array_key_exists($parts[0], $topStates)) {
                 continue;
             }
             
-            $gunsArr = array();
-            if (array_key_exists($parts[1], $dataPoints)) {
-                $gunsArr = $dataPoints[$parts[1]];
-            }
-
-            array_push($gunsArr, array("label" => $parts[0], "y" => str_replace("\n", "", $parts[2])));
-            $dataPoints[$parts[1]] = $gunsArr;
+            checkAndPush(0, $parts);
+            checkAndPush(1, $parts);
         }
 
         fclose($handle);
-    } 
+    }
+
+    function checkAndPush($idx, $parts) {
+        $gunsArr = array();
+        if (array_key_exists($idx, $GLOBALS['dataPoints'])) {
+            $gunsArr = $GLOBALS['dataPoints'][$idx];
+        }
+
+        array_push($gunsArr, array("label" => $parts[0], "y" => str_replace("\n", "", $parts[$idx+1])));
+        $GLOBALS['dataPoints'][$idx] = $gunsArr;
+    }
 ?>
 
 <html>
