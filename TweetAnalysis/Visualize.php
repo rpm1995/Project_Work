@@ -1,24 +1,21 @@
 <?php
+    $dataPoints = array();
+    $handle = fopen("Clustered.csv", "r");
+    if ($handle) {
+        $truncatedLine = "";
 
-    $dataPoints1 = array(
-        array("label"=> "CA", "y"=> 300),
-        array("label"=> "MA", "y"=> 243),
-        array("label"=> "NY", "y"=> 352),
-        array("label"=> "IL", "y"=> 187),
-        array("label"=> "FL", "y"=> 433),
-        array("label"=> "TX", "y"=> 411),
-        array("label"=> "NV", "y"=> 299)
-    );
-    $dataPoints2 = array(
-        array("label"=> "CA", "y"=> 452),
-        array("label"=> "MA", "y"=> 436),
-        array("label"=> "NY", "y"=> 255),
-        array("label"=> "IL", "y"=> 201),
-        array("label"=> "FL", "y"=> 322),
-        array("label"=> "TX", "y"=> 656),
-        array("label"=> "NV", "y"=> 385)
-    );
-    
+        while (($line = fgets($handle)) !== false) {
+            $parts = explode(", ", $line);
+            $gunsArr = array();
+            if (array_key_exists($parts[1], $dataPoints)) {
+                $gunsArr = $dataPoints[$parts[1]];
+            }
+            array_push($gunsArr, array("label" => $parts[0], "y" => str_replace("\n", "", $parts[2])));
+            $dataPoints[$parts[1]] = $gunsArr;
+        }
+
+        fclose($handle);
+    } 
 ?>
 
 <html>
@@ -29,7 +26,7 @@
 
             var chart = new CanvasJS.Chart("chartContainer", {
                 animationEnabled: true,
-                theme: "light2",
+                theme: "dark2",
                 title: {
                     text: "Tweets For/Against Guns Clustered By States"
                 },
@@ -45,14 +42,14 @@
                     indexLabel: "{y}",
                     yValueFormatString: "#0",
                     showInLegend: true,
-                    dataPoints: <?php echo json_encode($dataPoints1, JSON_NUMERIC_CHECK); ?>
+                    dataPoints: <?php echo json_encode($dataPoints[1], JSON_NUMERIC_CHECK); ?>
                 }, {
                     type: "column",
                     name: "Against Guns",
                     indexLabel: "{y}",
                     yValueFormatString: "#0",
                     showInLegend: true,
-                    dataPoints: <?php echo json_encode($dataPoints2, JSON_NUMERIC_CHECK); ?>
+                    dataPoints: <?php echo json_encode($dataPoints[0], JSON_NUMERIC_CHECK); ?>
                 }]
             });
             chart.render();
@@ -71,7 +68,7 @@
 </head>
 
 <body>
-    <div id="chartContainer" style="margin: 0 auto; height: 400px; width: 80%;"></div>
+    <div id="chartContainer" style="margin: 0 auto; height: 100%; width: 100%;"></div>
     <script src="canvasjs.min.js"></script>
 </body>
 
